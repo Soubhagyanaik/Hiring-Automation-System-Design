@@ -1,0 +1,194 @@
+<!-- ================= HEADER ================= -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hiring Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="navbar">
+    <h3>🤖 AI Powered Hiring Automation System</h3>
+    <h1> Hiring Dashboard</h1>
+
+    <div class="top-buttons">
+        <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">Logout</button>
+        </form>
+
+        <a href="{% url 'analytics' %}" class="apply">📊 Analytics</a>
+        <a href="{% url 'download_excel' %}" class="download">⬇ Download Excel</a>
+        <a href="{% url 'apply' %}" class="apply">➕ Apply Candidate</a>
+    </div>
+</div>
+
+<!-- ================= SEARCH & FILTER ================= -->
+<div style="text-align:center; margin:20px;">
+    <form method="GET">
+        <input type="text" name="q" placeholder="Search by name/email">
+
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Selected">Selected</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+
+        <button type="submit">Filter</button>
+    </form>
+</div>
+
+<!-- ================= STATS ================= -->
+<div class="stats-container">
+
+    <div class="stat-card">
+        <h3>Total</h3>
+        <p>{{ total }}</p>
+    </div>
+
+    <div class="stat-card">
+        <h3>Shortlisted</h3>
+        <p>{{ shortlisted }}</p>
+    </div>
+
+    <div class="stat-card">
+        <h3>Rejected</h3>
+        <p>{{ rejected }}</p>
+    </div>
+
+    <div class="stat-card">
+        <h3>Selected</h3>
+        <p>{{ selected }}</p>
+    </div>
+
+    <div class="stat-card">
+        <h3>Avg Score</h3>
+        <p>{{ average_score }}</p>
+    </div>
+
+    <div class="stat-card" style="background:#22c55e;color:white;">
+        <h3>Selection Rate</h3>
+        <p>{{ selection_rate }}%</p>
+    </div>
+
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Stage</th>
+                <th>Applied On</th>
+                <th>Resume</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for c in candidates %}
+            <tr>
+                <td>
+                    <a href="{% url 'candidate_detail' c.id %}">
+                        <strong>{{ c.name }}</strong>
+                    </a>
+                </td>
+
+                <td>{{ c.email }}</td>
+                <td>{{ c.score }}</td>
+
+                <td>
+                    <span class="status {{ c.status|lower }}">
+                        {{ c.status }}
+                    </span>
+                </td>
+
+                <td>{{ c.interview_stage }}</td>
+                <td>{{ c.created_at|date:"d M Y" }}</td>
+
+                <td>
+                    {% if c.resume %}
+                        <a href="{{ c.resume.url }}" target="_blank" class="view-btn">
+                            View
+                        </a>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if c.status != "Selected" and c.status != "Rejected" %}
+                        <a href="{% url 'screen_candidate' c.id %}">Screen</a> |
+                        <a href="{% url 'move_stage' c.id %}">Move</a>
+                    {% else %}
+                        <span class="completed">Completed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">No candidates available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ================= CHARTS ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- PIE CHART -->
+<div style="max-width:400px; margin:40px auto;">
+    <h2 style="text-align:center;">📊 Hiring Status</h2>
+    <canvas id="statusChart"></canvas>
+</div>
+
+<!-- BAR CHART -->
+<div style="max-width:700px; margin:60px auto;">
+    <h2 style="text-align:center;">📈 Monthly Applications</h2>
+    <canvas id="monthlyChart"></canvas>
+</div>
+
+<script>
+    const selected = Number("{{ selected|default:'0' }}");
+    const shortlisted = Number("{{ shortlisted|default:'0' }}");
+    const rejected = Number("{{ rejected|default:'0' }}");
+
+    const months = JSON.parse('{{ months|default:"[]"|escapejs }}');
+    const monthlyCounts = JSON.parse('{{ monthly_counts|default:"[]"|escapejs }}');
+
+    // PIE CHART
+    new Chart(document.getElementById('statusChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Selected', 'Shortlisted', 'Rejected'],
+            datasets: [{
+                data: [selected, shortlisted, rejected],
+                backgroundColor: ['#22c55e', '#3b82f6', '#ef4444']
+            }]
+        }
+    });
+
+    // BAR CHART
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Applications',
+                data: monthlyCounts,
+                backgroundColor: '#3b82f6'
+            }]
+        }
+    });
+</script>
+
+</body>
+</html>

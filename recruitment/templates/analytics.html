@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hiring Analytics</title>
+    <link rel="stylesheet" href="{% static 'css/analytics.css' %}">
+</head>
+<body>
+
+<div class="navbar">
+    <h1>📊 Hiring Analytics</h1>
+
+    <div class="top-buttons">
+        <a href="{% url 'dashboard' %}" class="apply">⬅ Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="chart-grid">
+
+    <div class="chart-card">
+        <h3>Status Distribution</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+        <h3>Selection Overview</h3>
+        <canvas id="barChart"></canvas>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const selected = Number("{{ selected|default:'0' }}");
+    const shortlisted = Number("{{ shortlisted|default:'0' }}");
+    const rejected = Number("{{ rejected|default:'0' }}");
+
+    // Pie Chart
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Selected', 'Shortlisted', 'Rejected'],
+            datasets: [{
+                data: [selected, shortlisted, rejected],
+                backgroundColor: ['#10b981','#3b82f6','#ef4444']
+            }]
+        },
+        options: { responsive: true }
+    });
+
+    // Bar Chart
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Selected', 'Shortlisted', 'Rejected'],
+            datasets: [{
+                label: 'Candidates',
+                data: [selected, shortlisted, rejected],
+                backgroundColor: ['#10b981','#3b82f6','#ef4444']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+
+</body>
+</html>

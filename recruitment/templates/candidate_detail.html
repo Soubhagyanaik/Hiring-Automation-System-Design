@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Candidate Detail</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>👤 Candidate Profile</h1>
+
+    <!-- ================= BASIC INFO ================= -->
+    <div class="stat-box">
+        <p><strong>Name:</strong> {{ candidate.name }}</p>
+        <p><strong>Email:</strong> {{ candidate.email }}</p>
+        <p><strong>Status:</strong> {{ candidate.status }}</p>
+        <p><strong>Interview Stage:</strong> {{ candidate.interview_stage }}</p>
+
+        <p><strong>AI Match Score:</strong> {{ candidate.score }}%</p>
+
+        <!-- ===== Progress Bar ===== -->
+        <div class="progress-container">
+            <div class="progress-bar
+                {% if candidate.score < 40 %}
+                    low
+                {% elif candidate.score < 70 %}
+                    medium
+                {% else %}
+                    high
+                {% endif %}
+            "
+            style="width: {{ candidate.score }}%;">
+                {{ candidate.score }}%
+            </div>
+        </div>
+
+        <p><strong>Grade:</strong> {{ candidate.grade }}</p>
+        <p><strong>Level:</strong> {{ candidate.level }}</p>
+    </div>
+
+    <!-- ================= SCORE BREAKDOWN ================= -->
+    <h3>📊 Score Breakdown</h3>
+
+    <div class="dashboard-stats">
+        <div class="stat-box">Skill Score: {{ candidate.skill_score }}</div>
+        <div class="stat-box">Experience Score: {{ candidate.experience_score }}</div>
+        <div class="stat-box">Education Score: {{ candidate.education_score }}</div>
+        <div class="stat-box">Certification Score: {{ candidate.certification_score }}</div>
+    </div>
+
+    {% if candidate.reject_reason %}
+        <div class="stat-box reject-box">
+            <strong>Reject Reason:</strong> {{ candidate.reject_reason }}
+        </div>
+    {% endif %}
+
+    <!-- ================= RECRUITER FEEDBACK ================= -->
+
+    <hr>
+
+    <h3 class="section-title">📝 Recruiter Notes & Feedback</h3>
+
+    <form method="POST" action="{% url 'update_feedback' candidate.id %}" class="feedback-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Recruiter Notes:</label>
+            <textarea name="recruiter_notes" rows="3">{{ candidate.recruiter_notes }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Rating (1–5):</label>
+            <select name="rating">
+                <option value="1" {% if candidate.rating == 1 %}selected{% endif %}>1 ⭐</option>
+                <option value="2" {% if candidate.rating == 2 %}selected{% endif %}>2 ⭐</option>
+                <option value="3" {% if candidate.rating == 3 %}selected{% endif %}>3 ⭐</option>
+                <option value="4" {% if candidate.rating == 4 %}selected{% endif %}>4 ⭐</option>
+                <option value="5" {% if candidate.rating == 5 %}selected{% endif %}>5 ⭐</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Interview Feedback:</label>
+            <textarea name="feedback" rows="3">{{ candidate.feedback }}</textarea>
+        </div>
+
+        <button type="submit" class="save-btn">
+            💾 Save Feedback
+        </button>
+    </form>
+
+    <!-- ================= BUTTONS ================= -->
+
+    <br>
+
+    <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-warning">
+        📄 View Resume
+    </a>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+        ⬅ Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>
